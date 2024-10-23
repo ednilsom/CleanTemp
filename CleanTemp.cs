@@ -1,103 +1,91 @@
 using System;
-using System.Drawing;
+using System.IO;
+
 class CleanTemp
 {
-    enum Opcao { Executar = 1, Sair = 2, Info = 3 }
-    public class Global
-    {
-        public static string Temp2 = Path.GetTempPath();
-    }
+   public class Global
+   {
+      public static string[] TempPath = [Path.GetTempPath ( ), "C:\\Windows\\Temp"];
+   }
 
-    public static void Main(string[] args)
-    {
-        bool executando = false;
-        while (!executando)
-        {
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("LIMPADOR DE PASTAS TEMPORARIAS!");
-            Console.ResetColor();
-            Console.WriteLine("Escolha uma opção:");
-            Console.WriteLine("1-Executar\n2-Sair");
-            Opcao index = (Opcao)int.Parse(Console.ReadLine());
-            Console.Clear();
+   public static void Main ( string[] args )
+   {
+      string arg = string.Empty;
+      Console.ForegroundColor = ConsoleColor.Cyan;
+      Console.WriteLine ( "Temp Folder Cleanup Tool" );
+      Console.WriteLine ( );
 
-            switch (index)
-            {
-                case Opcao.Executar:
-                    {
-                        Console.WriteLine($"Essa opção ira limpar as seguintes pastas:\n{Global.Temp2}");
-                        Console.WriteLine("Deseja continuar?:\n1-Sim\n2-Nao");
-                        int resposta = int.Parse(Console.ReadLine());
-                        Console.Clear();
-                        if (resposta == 1)
-                        {
-                            Temp();
-                        }
-                        else
-                        {
-                            Console.Clear();
-                            continue;
-                        }
-                        break;
-                    }
+      if ( args.Length > 0 )
+      {
+         arg = args[0];
+      }
+      if ( args.Length == 0 || arg != "-r" )
+      {
+         Console.WriteLine ( "Usage: CleanTemp -r = run the cleaning." );
+         return;
+      }
 
-                case Opcao.Sair:
-                    {
-                        executando = true;
-                        break;
-                    }
+      TempCleanup ( );
 
-            }
-        }
-    }
-    public static void Temp()
-    {
-        int pasta_apagado = 0;
-        int arquivo_apagado = 0;
-        int arquivo_aberto = 0;
-        int pasta_aberto = 0;
-        string[] pastas = Directory.GetDirectories(Global.Temp2);
-        string[] arquivos = Directory.GetFiles(Global.Temp2);
+   }
+   public static void TempCleanup ( )
+   {
+      int removedFolders = 0;
+      int removedFiles = 0;
+      int openFolders = 0;
+      int openFiles = 0;
+      foreach ( string tempFolder in Global.TempPath )
+      {
+         string[] folders;
+         string[] files;
+         try
+         {
+            Console.WriteLine ( $"Processing {tempFolder}." );
+            folders = Directory.GetDirectories ( tempFolder );
+            files = Directory.GetFiles ( tempFolder );
+         }
+         catch
+         {
+            openFolders++;
+            continue;
+         }
 
-        foreach (string arquivo in arquivos)
-        {
+         foreach ( string file in files )
+         {
             try
             {
-                File.SetAttributes(arquivo, FileAttributes.Normal);
-                File.Delete(arquivo);
-                arquivo_apagado++;
+               File.SetAttributes ( file, FileAttributes.Normal );
+               File.Delete ( file );
+               removedFiles++;
             }
             catch
             {
-                arquivo_aberto++;
-                continue;
+               openFiles++;
+               continue;
             }
-            Console.WriteLine($"Deletando {arquivo}...");
-        }
-
-        foreach (string pasta in pastas)
-        {
+            Console.WriteLine ( $"Removing file {file}." );
+         }
+         foreach ( string folder in folders )
+         {
             try
             {
-                Directory.Delete(pasta, true);
-                Console.WriteLine($"Deletando {pasta}...");
-                pasta_apagado++;
+               Directory.Delete ( folder, true );
+               Console.WriteLine ( $"Removing folder {folder}." );
+               removedFolders++;
             }
             catch
             {
-                pasta_aberto++;
-                continue;
+               openFolders++;
+               continue;
             }
-        }
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine($"{arquivo_apagado} arquivos foram apagados");
-        Console.WriteLine($"{pasta_apagado} pastas foram apagados");
-        Console.ResetColor();
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine($"{arquivo_aberto + pasta_aberto} arquivos estavam abertos");
-        Console.ResetColor();
-        Console.WriteLine("Ação Concluida! Aperte ENTER para continuar");
-        Console.ReadLine();
-        Console.Clear();
-    }
+         }
+      }
+      Console.ForegroundColor = ConsoleColor.Green;
+      Console.WriteLine ( $"{removedFiles} files removed." );
+      Console.WriteLine ( $"{removedFolders} folders removed" );
+      Console.ResetColor ( );
+      Console.ForegroundColor = ConsoleColor.Yellow;
+      Console.WriteLine ( $"{openFiles + openFolders} files and folders where open" );
+      Console.ResetColor ( );
+   }
 }
