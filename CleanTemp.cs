@@ -1,91 +1,75 @@
 using System;
 using System.IO;
+using System.Reflection;
 
-class CleanTemp
+[assembly: AssemblyVersion ( "1.0.0.0" )]
+
+Console.WriteLine ( "Temp Folder Cleanup Tool" );
+Console.WriteLine ( );
+
+if ( args.Length == 0 || args[0] != "-r" )
 {
-   public class Global
+   Console.WriteLine ( "Usage: CleanTemp -r = run the cleaning." );
+}
+else
+{
+   string[] tempPath = [Path.GetTempPath ( ), "C:\\Windows\\Temp"];
+   int removedFolders = 0;
+   int removedFiles = 0;
+   int openFolders = 0;
+   int openFiles = 0;
+   foreach ( string tempFolder in tempPath )
    {
-      public static string[] TempPath = [Path.GetTempPath ( ), "C:\\Windows\\Temp"];
-   }
-
-   public static void Main ( string[] args )
-   {
-      string arg = string.Empty;
-      Console.ForegroundColor = ConsoleColor.Cyan;
-      Console.WriteLine ( "Temp Folder Cleanup Tool" );
-      Console.WriteLine ( );
-
-      if ( args.Length > 0 )
+      string[] folders;
+      string[] files;
+      try
       {
-         arg = args[0];
+         Console.WriteLine ( $"Processing {tempFolder}." );
+         folders = Directory.GetDirectories ( tempFolder );
+         files = Directory.GetFiles ( tempFolder );
       }
-      if ( args.Length == 0 || arg != "-r" )
+      catch
       {
-         Console.WriteLine ( "Usage: CleanTemp -r = run the cleaning." );
-         return;
+         Console.WriteLine ( $"Failed searching folder {tempFolder}." );
+         openFolders++;
+         continue;
       }
 
-      TempCleanup ( );
-
-   }
-   public static void TempCleanup ( )
-   {
-      int removedFolders = 0;
-      int removedFiles = 0;
-      int openFolders = 0;
-      int openFiles = 0;
-      foreach ( string tempFolder in Global.TempPath )
+      foreach ( string file in files )
       {
-         string[] folders;
-         string[] files;
          try
          {
-            Console.WriteLine ( $"Processing {tempFolder}." );
-            folders = Directory.GetDirectories ( tempFolder );
-            files = Directory.GetFiles ( tempFolder );
+            File.SetAttributes ( file, FileAttributes.Normal );
+            File.Delete ( file );
+            removedFiles++;
+         }
+         catch
+         {
+            openFiles++;
+            continue;
+         }
+         Console.WriteLine ( $"Removing file {file}." );
+      }
+      foreach ( string folder in folders )
+      {
+         try
+         {
+            Directory.Delete ( folder, true );
+            Console.WriteLine ( $"Removing folder {folder}." );
+            removedFolders++;
          }
          catch
          {
             openFolders++;
             continue;
          }
-
-         foreach ( string file in files )
-         {
-            try
-            {
-               File.SetAttributes ( file, FileAttributes.Normal );
-               File.Delete ( file );
-               removedFiles++;
-            }
-            catch
-            {
-               openFiles++;
-               continue;
-            }
-            Console.WriteLine ( $"Removing file {file}." );
-         }
-         foreach ( string folder in folders )
-         {
-            try
-            {
-               Directory.Delete ( folder, true );
-               Console.WriteLine ( $"Removing folder {folder}." );
-               removedFolders++;
-            }
-            catch
-            {
-               openFolders++;
-               continue;
-            }
-         }
       }
-      Console.ForegroundColor = ConsoleColor.Green;
-      Console.WriteLine ( $"{removedFiles} files removed." );
-      Console.WriteLine ( $"{removedFolders} folders removed" );
-      Console.ResetColor ( );
-      Console.ForegroundColor = ConsoleColor.Yellow;
-      Console.WriteLine ( $"{openFiles + openFolders} files and folders where open" );
-      Console.ResetColor ( );
    }
+   Console.ForegroundColor = ConsoleColor.Green;
+   Console.WriteLine ( $"{removedFiles} files removed." );
+   Console.WriteLine ( $"{removedFolders} folders removed" );
+   Console.ResetColor ( );
+   Console.ForegroundColor = ConsoleColor.Yellow;
+   Console.WriteLine ( $"{openFiles + openFolders} files and folders where open" );
+   Console.ResetColor ( );
 }
