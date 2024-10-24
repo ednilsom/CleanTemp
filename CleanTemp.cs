@@ -18,6 +18,9 @@ else
    int removedFiles = 0;
    int openFolders = 0;
    int openFiles = 0;
+   string drive = Directory.GetCurrentDirectory ( ).Split ( '\\' )[0];
+   DriveInfo d = new ( drive );
+   long beforeFreeSpace = d.TotalFreeSpace;
    foreach ( string tempFolder in tempPath )
    {
       string[] folders;
@@ -65,11 +68,13 @@ else
          }
       }
    }
+   long diffFreeSpace = d.TotalFreeSpace - beforeFreeSpace;
    Console.ForegroundColor = ConsoleColor.Green;
    Console.WriteLine ( $"{removedFiles} files removed." );
    Console.WriteLine ( $"{removedFolders} folders removed" );
    Console.ResetColor ( );
    Console.ForegroundColor = ConsoleColor.Yellow;
    Console.WriteLine ( $"{openFiles + openFolders} files and folders where open" );
+   Console.WriteLine ( $"{diffFreeSpace:N0} bytes saved" );
    Console.ResetColor ( );
 }

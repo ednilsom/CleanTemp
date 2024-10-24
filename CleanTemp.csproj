@@ -11,6 +11,12 @@
       <StartupObject></StartupObject>
       <ApplicationIcon>CleanTemp.ico</ApplicationIcon>
    </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+      <WarningLevel>7</WarningLevel>
+   </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+      <WarningLevel>7</WarningLevel>
+   </PropertyGroup>
    <ProjectExtensions>
       <VisualStudio AllowExistingFolder="true" />
    </ProjectExtensions>
